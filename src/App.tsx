@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import QuestionDisplay from './components/QuestionDisplay';
 import AnswerOptions from './components/AnswerOptions';
 import Timer from './components/Timer';
@@ -47,11 +47,20 @@ const App: React.FC = () => {
   const [isOrganizer, setIsOrganizer] = useState(false);
   const [organizerKey, setOrganizerKey] = useState('');
   const [resetTimer, setResetTimer] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const currentQuestion = quizData[currentIndex];
 
   const handleAnswerSelect = (answer: string) => {
-    if (selectedAnswer || isTimeUp) return;
+    if (!currentQuestion || selectedAnswer || isTimeUp) return;
     setSelectedAnswer(answer);
 
     if (answer === currentQuestion.correctAnswer) {
@@ -68,7 +77,6 @@ const App: React.FC = () => {
     }
   };
 
-  
   const goToNextQuestion = () => {
     if (currentIndex + 1 < quizData.length) {
       setSelectedAnswer(null);
@@ -141,9 +149,15 @@ const App: React.FC = () => {
       setHasStarted(true);
     }
   };
-  
 
-  const isMobile = window.innerWidth <= 768;
+  if (!currentQuestion && hasStarted && !showScore) {
+    return (
+      <div style={{ color: "white", textAlign: "center" }}>
+        <h2>Quiz Error</h2>
+        <p>No questions available or invalid question index.</p>
+      </div>
+    );
+  }
 
   return (
     <div style={{
@@ -257,7 +271,7 @@ const App: React.FC = () => {
             <h2>Thank you for participating, {participantName}!</h2>
             <h3 style={{ fontSize: "2rem", color: "#03dac6" }}>{score} / {quizData.length}</h3>
           </div>
-        ) : (
+        ) : currentQuestion ? (
           <>
             <Timer key={resetTimer.toString()} seconds={30} onTimeUp={handleTimeUp} />
             <QuestionDisplay question={currentQuestion.question} />
@@ -272,11 +286,11 @@ const App: React.FC = () => {
             )}
             {isTimeUp && !selectedAnswer && (
               <p style={{ color: "#ff5252", marginTop: "1rem" }}>
-                ⏰ Time’s up! You didn’t answer.
+                ⏰ Time's up! You didn't answer.
               </p>
             )}
           </>
-        )}
+        ) : null}
 
         {isOrganizer && results.length > 0 && (
           <div style={{ marginTop: "2rem" }}>
