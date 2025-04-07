@@ -801,6 +801,18 @@ const App = () => {
               cursor: "pointer"
             }
           }, '📥 Download All Results')
+        ),
+        React.createElement(
+          'footer',
+          {
+            style: {
+              marginTop: "2rem",
+              textAlign: "center",
+              color: "#fff",
+              fontSize: "0.9rem"
+            }
+          },
+          '© Created by Simeen Ali 2025'
         )
       ]
     )
