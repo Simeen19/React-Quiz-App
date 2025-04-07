@@ -1,5 +1,11 @@
-import { jsx as _jsx } from "react/jsx-runtime";
+import React from 'react';
+
 const QuestionDisplay = ({ question }) => {
-    return (_jsx("div", { children: _jsx("h2", { children: question }) }));
+  return React.createElement(
+    'div',
+    null,
+    React.createElement('h2', null, question)
+  );
 };
+
 export default QuestionDisplay;

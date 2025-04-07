@@ -1,5 +1,5 @@
-import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
 import { useState, useEffect } from 'react';
+import React from 'react';
 import QuestionDisplay from './components/QuestionDisplay';
 import AnswerOptions from './components/AnswerOptions';
 import Timer from './components/Timer';
@@ -182,45 +182,57 @@ const App = () => {
   };
 
   if (!currentQuestion && hasStarted && !showScore) {
-    return (
-      <div style={{ color: "white", textAlign: "center" }}>
-        <h2>Quiz Error</h2>
-        <p>No questions available or invalid question index.</p>
-      </div>
+    return React.createElement(
+      'div',
+      { style: { color: "white", textAlign: "center" } },
+      [
+        React.createElement('h2', null, 'Quiz Error'),
+        React.createElement('p', null, 'No questions available or invalid question index.')
+      ]
     );
   }
 
-  return (
-    <div style={{
-      minHeight: "100vh",
-      backgroundColor: "#121212",
-      color: "#f1f1f1",
-      display: "flex",
-      flexDirection: "column",
-      justifyContent: "center",
-      alignItems: "center",
-      padding: isMobile ? "1rem" : "2rem"
-    }}>
-      <div style={{
-        width: "100%",
-        maxWidth: isMobile ? "90%" : "600px",
-        padding: isMobile ? "1rem" : "2rem",
-        borderRadius: "12px",
-        backgroundColor: "#1e1e1e",
-        boxShadow: "0 4px 20px rgba(0,0,0,0.5)",
-        textAlign: "center"
-      }}>
-        <h1 style={{ marginBottom: "1.5rem", color: "#fff" }}>E-cell IARE</h1>
-        <h2 style={{ marginBottom: "1.5rem", color: "#fff" }}>🏏IPL Auction Quiz</h2>
+  return React.createElement(
+    'div',
+    {
+      style: {
+        minHeight: "100vh",
+        backgroundColor: "#121212",
+        color: "#f1f1f1",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        alignItems: "center",
+        padding: isMobile ? "1rem" : "2rem"
+      }
+    },
+    React.createElement(
+      'div',
+      {
+        style: {
+          width: "100%",
+          maxWidth: isMobile ? "90%" : "600px",
+          padding: isMobile ? "1rem" : "2rem",
+          borderRadius: "12px",
+          backgroundColor: "#1e1e1e",
+          boxShadow: "0 4px 20px rgba(0,0,0,0.5)",
+          textAlign: "center"
+        }
+      },
+      [
+        React.createElement('h1', { style: { marginBottom: "1.5rem", color: "#fff" } }, 'E-cell IARE'),
+        React.createElement('h2', { style: { marginBottom: "1.5rem", color: "#fff" } }, '🏏IPL Auction Quiz'),
         
-        {!hasStarted ? (
-          <>
-            <input
-              type="text"
-              value={participantName}
-              onChange={(e) => setParticipantName(e.target.value)}
-              placeholder="Enter your name"
-              style={{
+        !hasStarted ? React.createElement(
+          React.Fragment,
+          null,
+          [
+            React.createElement('input', {
+              type: "text",
+              value: participantName,
+              onChange: (e) => setParticipantName(e.target.value),
+              placeholder: "Enter your name",
+              style: {
                 padding: "0.8rem",
                 width: "100%",
                 fontSize: "1rem",
@@ -229,14 +241,14 @@ const App = () => {
                 marginBottom: "1rem",
                 backgroundColor: "#2a2a2a",
                 color: "#fff"
-              }}
-            />
-            <input
-              type="email"
-              value={participantEmail}
-              onChange={(e) => setParticipantEmail(e.target.value)}
-              placeholder="Enter your email"
-              style={{
+              }
+            }),
+            React.createElement('input', {
+              type: "email",
+              value: participantEmail,
+              onChange: (e) => setParticipantEmail(e.target.value),
+              placeholder: "Enter your email",
+              style: {
                 padding: "0.8rem",
                 width: "100%",
                 fontSize: "1rem",
@@ -245,12 +257,12 @@ const App = () => {
                 marginBottom: "1rem",
                 backgroundColor: "#2a2a2a",
                 color: "#fff"
-              }}
-            />
-            <button
-              onClick={handleStartQuiz}
-              disabled={!participantName.trim() || !participantEmail.trim()}
-              style={{
+              }
+            }),
+            React.createElement('button', {
+              onClick: handleStartQuiz,
+              disabled: !participantName.trim() || !participantEmail.trim(),
+              style: {
                 padding: "0.7rem 1.5rem",
                 fontSize: "1rem",
                 backgroundColor: "#03dac6",
@@ -259,97 +271,95 @@ const App = () => {
                 borderRadius: "6px",
                 cursor: "pointer",
                 fontWeight: "bold"
-              }}
-            >
-              Start Quiz
-            </button>
+              }
+            }, 'Start Quiz'),
             
-            <div style={{ marginTop: "2rem" }}>
-              <input
-                type="password"
-                value={organizerKey}
-                onChange={(e) => setOrganizerKey(e.target.value)}
-                placeholder="Organizer passcode"
-                style={{
-                  padding: "0.6rem",
-                  width: "60%",
-                  fontSize: "1rem",
-                  borderRadius: "6px",
-                  border: "1px solid #444",
-                  backgroundColor: "#2a2a2a",
-                  color: "#fff"
-                }}
-              />
-              <button
-                onClick={handleOrganizerCheck}
-                style={{
-                  marginLeft: "1rem",
-                  padding: "0.6rem 1rem",
-                  backgroundColor: "#bb86fc",
-                  color: "#000",
-                  fontWeight: "bold",
-                  border: "none",
-                  borderRadius: "6px",
-                  cursor: "pointer"
-                }}
-              >
-                Verify
-              </button>
-            </div>
-          </>
-        ) : showScore ? (
-          <div>
-            <h2>Thank you for participating, {participantName}!</h2>
-            <h3 style={{ fontSize: "2rem", color: "#03dac6" }}>
-              {score} / {quizData.length}
-            </h3>
-          </div>
-        ) : currentQuestion ? (
-          <>
-            <Timer seconds={30} onTimeUp={handleTimeUp} key={resetTimer.toString()} />
-            <QuestionDisplay question={currentQuestion.question} />
+            React.createElement(
+              'div',
+              { style: { marginTop: "2rem" } },
+              [
+                React.createElement('input', {
+                  type: "password",
+                  value: organizerKey,
+                  onChange: (e) => setOrganizerKey(e.target.value),
+                  placeholder: "Organizer passcode",
+                  style: {
+                    padding: "0.6rem",
+                    width: "60%",
+                    fontSize: "1rem",
+                    borderRadius: "6px",
+                    border: "1px solid #444",
+                    backgroundColor: "#2a2a2a",
+                    color: "#fff"
+                  }
+                }),
+                React.createElement('button', {
+                  onClick: handleOrganizerCheck,
+                  style: {
+                    marginLeft: "1rem",
+                    padding: "0.6rem 1rem",
+                    backgroundColor: "#bb86fc",
+                    color: "#000",
+                    fontWeight: "bold",
+                    border: "none",
+                    borderRadius: "6px",
+                    cursor: "pointer"
+                  }
+                }, 'Verify')
+              ]
+            )
+          ]
+        ) : showScore ? React.createElement(
+          'div',
+          null,
+          [
+            React.createElement('h2', null, `Thank you for participating, ${participantName}!`),
+            React.createElement('h3', { style: { fontSize: "2rem", color: "#03dac6" } }, `${score} / ${quizData.length}`)
+          ]
+        ) : currentQuestion ? React.createElement(
+          React.Fragment,
+          null,
+          [
+            React.createElement(Timer, { seconds: 30, onTimeUp: handleTimeUp, key: resetTimer.toString() }),
+            React.createElement(QuestionDisplay, { question: currentQuestion.question }),
             
-            {!isTimeUp && !selectedAnswer && (
-              <AnswerOptions 
-                options={currentQuestion.options} 
-                onSelect={handleAnswerSelect} 
-              />
-            )}
+            !isTimeUp && !selectedAnswer && React.createElement(AnswerOptions, { 
+              options: currentQuestion.options,
+              onSelect: handleAnswerSelect
+            }),
             
-            {selectedAnswer && (
-              <p style={{ marginTop: "1rem" }}>
-                You selected: <strong>{selectedAnswer}</strong> — {selectedAnswer === currentQuestion.correctAnswer ? "✅ Correct!" : "❌ Wrong"}
-              </p>
-            )}
+            selectedAnswer && React.createElement(
+              'p',
+              { style: { marginTop: "1rem" } },
+              `You selected: ${selectedAnswer} — ${selectedAnswer === currentQuestion.correctAnswer ? "✅ Correct!" : "❌ Wrong"}`
+            ),
             
-            {isTimeUp && !selectedAnswer && (
-              <p style={{ color: "#ff5252", marginTop: "1rem" }}>
-                ⏰ Time's up! You didn't answer.
-              </p>
-            )}
-          </>
-        ) : null}
+            isTimeUp && !selectedAnswer && React.createElement(
+              'p',
+              { style: { color: "#ff5252", marginTop: "1rem" } },
+              "⏰ Time's up! You didn't answer."
+            )
+          ]
+        ) : null,
         
-        {isOrganizer && results.length > 0 && (
-          <div style={{ marginTop: "2rem" }}>
-            <button
-              onClick={downloadAllResults}
-              style={{
-                padding: "0.7rem 1.5rem",
-                backgroundColor: "#ff9800",
-                color: "#000",
-                fontWeight: "bold",
-                border: "none",
-                borderRadius: "6px",
-                cursor: "pointer"
-              }}
-            >
-              📥 Download All Results
-            </button>
-          </div>
-        )}
-      </div>
-    </div>
+        isOrganizer && results.length > 0 && React.createElement(
+          'div',
+          { style: { marginTop: "2rem" } },
+          React.createElement('button', {
+            onClick: downloadAllResults,
+            style: {
+              padding: "0.7rem 1.5rem",
+              backgroundColor: "#ff9800",
+              color: "#000",
+              fontWeight: "bold",
+              border: "none",
+              borderRadius: "6px",
+              cursor: "pointer"
+            }
+          }, '📥 Download All Results')
+        )
+      ]
+    )
   );
 };
 
