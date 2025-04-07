@@ -83,22 +83,39 @@ const App: React.FC = () => {
       setIsTimeUp(false);
       setResetTimer(prev => !prev);
       setCurrentIndex(prev => prev + 1);
-    } else {
+    } 
+    else {
       if (!showScore) {
         const alreadySubmitted = results.some(r => r.email === participantEmail);
         if (!alreadySubmitted) {
-          setResults(prev => [...prev, {
+          const newResult = {
             email: participantEmail,
             name: participantName,
             score,
             total: quizData.length
-          }]);
+          };
+  
+          // Add locally for leaderboard display
+          setResults(prev => [...prev, newResult]);
+  
+          // Send to Google Sheet
+          fetch('https://script.google.com/macros/s/AKfycbxJhf-8cTvm7rnHaxI5L5r0mskuJLcr5VLN0vxMAdJ2Q-Yxiq_NtNhoo8Yn1HLq9QXpAw/exec', {
+            method: 'POST',
+            body: JSON.stringify(newResult),
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          })
+          .then(res => res.json())
+          .then(data => console.log("Google Sheet response:", data))
+          .catch(err => console.error("Google Sheet error:", err));
         }
+  
         setShowScore(true);
       }
     }
   };
-
+  
   const handleOrganizerCheck = () => {
     if (organizerKey === 'iplauction2025') {
       setIsOrganizer(true);
