@@ -1,22 +1,23 @@
-import React, { useState, useEffect } from 'react';
+import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
+import { useState, useEffect } from 'react';
 import QuestionDisplay from './components/QuestionDisplay';
 import AnswerOptions from './components/AnswerOptions';
 import Timer from './components/Timer';
 
-type Question = {
+interface QuizQuestion {
   question: string;
   options: string[];
   correctAnswer: string;
-};
+}
 
-type Result = {
+interface QuizResult {
   email: string;
   name: string;
   score: number;
   total: number;
-};
+}
 
-const quizData: Question[] = [
+const quizData: QuizQuestion[] = [
   {
     question: "What is the capital of France?",
     options: ["Paris", "Berlin", "Madrid", "Rome"],
@@ -34,20 +35,20 @@ const quizData: Question[] = [
   }
 ];
 
-const App: React.FC = () => {
-  const [currentIndex, setCurrentIndex] = useState(0);
+const App = () => {
+  const [currentIndex, setCurrentIndex] = useState<number>(0);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
-  const [isTimeUp, setIsTimeUp] = useState(false);
-  const [score, setScore] = useState(0);
-  const [showScore, setShowScore] = useState(false);
-  const [participantName, setParticipantName] = useState('');
-  const [participantEmail, setParticipantEmail] = useState('');
-  const [results, setResults] = useState<Result[]>([]);
-  const [hasStarted, setHasStarted] = useState(false);
-  const [isOrganizer, setIsOrganizer] = useState(false);
-  const [organizerKey, setOrganizerKey] = useState('');
-  const [resetTimer, setResetTimer] = useState(false);
-  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const [isTimeUp, setIsTimeUp] = useState<boolean>(false);
+  const [score, setScore] = useState<number>(0);
+  const [showScore, setShowScore] = useState<boolean>(false);
+  const [participantName, setParticipantName] = useState<string>('');
+  const [participantEmail, setParticipantEmail] = useState<string>('');
+  const [results, setResults] = useState<QuizResult[]>([]);
+  const [hasStarted, setHasStarted] = useState<boolean>(false);
+  const [isOrganizer, setIsOrganizer] = useState<boolean>(false);
+  const [organizerKey, setOrganizerKey] = useState<string>('');
+  const [resetTimer, setResetTimer] = useState<boolean>(false);
+  const [isMobile, setIsMobile] = useState<boolean>(window.innerWidth <= 768);
 
   useEffect(() => {
     const handleResize = () => {
@@ -77,45 +78,70 @@ const App: React.FC = () => {
     }
   };
 
-  const goToNextQuestion = () => {
+  const submitToNoCodeAPI = async (data: QuizResult) => {
+    try {
+      const response = await fetch(
+        "https://v1.nocodeapi.com/simeen/google_sheets/vgSSWVDdxjcwyhVL?tabId=Sheet1",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify([
+            [ // This is the 2D array format NoCode API expects
+              new Date().toISOString(), // Timestamp
+              data.email,
+              data.name,
+              data.score.toString(),
+              data.total.toString()
+            ]
+          ]),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error("Error submitting to NoCode API:", error);
+      throw error;
+    }
+  };
+
+  const goToNextQuestion = async () => {
     if (currentIndex + 1 < quizData.length) {
       setSelectedAnswer(null);
       setIsTimeUp(false);
       setResetTimer(prev => !prev);
       setCurrentIndex(prev => prev + 1);
-    } 
-    else {
+    } else {
       if (!showScore) {
         const alreadySubmitted = results.some(r => r.email === participantEmail);
         if (!alreadySubmitted) {
-          const newResult = {
+          const newResult: QuizResult = {
             email: participantEmail,
             name: participantName,
-            score,
+            score: score,
             total: quizData.length
           };
-  
-          // Add locally for leaderboard display
+
           setResults(prev => [...prev, newResult]);
-  
-          // Send to Google Sheet
-          fetch('https://script.google.com/macros/s/AKfycbxJhf-8cTvm7rnHaxI5L5r0mskuJLcr5VLN0vxMAdJ2Q-Yxiq_NtNhoo8Yn1HLq9QXpAw/exec', {
-            method: 'POST',
-            body: JSON.stringify(newResult),
-            headers: {
-              'Content-Type': 'application/json'
-            }
-          })
-          .then(res => res.json())
-          .then(data => console.log("Google Sheet response:", data))
-          .catch(err => console.error("Google Sheet error:", err));
+          
+          try {
+            await submitToNoCodeAPI(newResult);
+            console.log("Data successfully submitted to Google Sheets");
+          } catch (error) {
+            console.error("Failed to submit to Google Sheets, saving locally only");
+            // You could add retry logic here or save to localStorage
+          }
         }
-  
         setShowScore(true);
       }
     }
   };
-  
+
   const handleOrganizerCheck = () => {
     if (organizerKey === 'iplauction2025') {
       setIsOrganizer(true);
@@ -127,8 +153,10 @@ const App: React.FC = () => {
   };
 
   const downloadAllResults = () => {
-    const header = "Email,Name,Score,Total\n";
-    const rows = results.map(r => `${r.email},${r.name},${r.score},${r.total}`).join("\n");
+    const header = "Timestamp,Email,Name,Score,Total\n";
+    const rows = results.map(r => 
+      `${new Date().toISOString()},${r.email},${r.name},${r.score},${r.total}`
+    ).join("\n");
     const csv = header + rows;
 
     const blob = new Blob([csv], { type: 'text/csv' });
@@ -143,22 +171,22 @@ const App: React.FC = () => {
 
   const handleStartQuiz = () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  
+
     if (!participantName.trim()) {
       alert("Please enter your name.");
       return;
     }
-  
+
     if (!participantEmail.trim()) {
       alert("Please enter your email.");
       return;
     }
-  
+
     if (!emailRegex.test(participantEmail)) {
       alert("Please enter a valid email address.");
       return;
     }
-  
+
     const previousResult = results.find(r => r.email === participantEmail);
     if (previousResult) {
       alert("You have already taken the quiz.");
@@ -196,9 +224,9 @@ const App: React.FC = () => {
         boxShadow: "0 4px 20px rgba(0,0,0,0.5)",
         textAlign: "center"
       }}>
-        <h1 style={{ marginBottom: "1.5rem", color: "#fff" }}> E-cell IARE </h1>
-        <h2 style={{ marginBottom: "1.5rem", color: "#fff" }}> 🏏IPL Auction Quiz</h2>
-
+        <h1 style={{ marginBottom: "1.5rem", color: "#fff" }}>E-cell IARE</h1>
+        <h2 style={{ marginBottom: "1.5rem", color: "#fff" }}>🏏IPL Auction Quiz</h2>
+        
         {!hasStarted ? (
           <>
             <input
@@ -249,7 +277,7 @@ const App: React.FC = () => {
             >
               Start Quiz
             </button>
-
+            
             <div style={{ marginTop: "2rem" }}>
               <input
                 type="password"
@@ -286,21 +314,28 @@ const App: React.FC = () => {
         ) : showScore ? (
           <div>
             <h2>Thank you for participating, {participantName}!</h2>
-            <h3 style={{ fontSize: "2rem", color: "#03dac6" }}>{score} / {quizData.length}</h3>
+            <h3 style={{ fontSize: "2rem", color: "#03dac6" }}>
+              {score} / {quizData.length}
+            </h3>
           </div>
         ) : currentQuestion ? (
           <>
-            <Timer key={resetTimer.toString()} seconds={30} onTimeUp={handleTimeUp} />
+            <Timer seconds={30} onTimeUp={handleTimeUp} key={resetTimer.toString()} />
             <QuestionDisplay question={currentQuestion.question} />
+            
             {!isTimeUp && !selectedAnswer && (
-              <AnswerOptions options={currentQuestion.options} onSelect={handleAnswerSelect} />
+              <AnswerOptions 
+                options={currentQuestion.options} 
+                onSelect={handleAnswerSelect} 
+              />
             )}
+            
             {selectedAnswer && (
               <p style={{ marginTop: "1rem" }}>
-                You selected: <strong>{selectedAnswer}</strong> —{" "}
-                {selectedAnswer === currentQuestion.correctAnswer ? "✅ Correct!" : "❌ Wrong"}
+                You selected: <strong>{selectedAnswer}</strong> — {selectedAnswer === currentQuestion.correctAnswer ? "✅ Correct!" : "❌ Wrong"}
               </p>
             )}
+            
             {isTimeUp && !selectedAnswer && (
               <p style={{ color: "#ff5252", marginTop: "1rem" }}>
                 ⏰ Time's up! You didn't answer.
@@ -308,7 +343,7 @@ const App: React.FC = () => {
             )}
           </>
         ) : null}
-
+        
         {isOrganizer && results.length > 0 && (
           <div style={{ marginTop: "2rem" }}>
             <button
